@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <title>{% block title %}{% endblock title %}</title>
+
+  <!-- Bootstrap core CSS -->
+  <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='vendor/font-awesome-4.7.0/css/font-awesome.min.css') }}" rel="stylesheet">
+
+  <!-- Custom styles for this template -->
+  <link href="{{ url_for('static', filename='css/blog-post.css') }}" rel="stylesheet">
+
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+  <!-- class="d-flex flex-column min-vh-100" -->
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top p>
+    <div class="container-fluid">
+      <div class="col-lg-2">
+
+      </div>
+      <a class="navbar-brand" href="{{ url_for('home') }}">
+        LawrenceLearns2Code
+      </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarResponsive">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="{{ url_for('home') }}">Home
+            </a>
+          </li>
+          <li class="nav-item active">
+            <a class="nav-link" href="{{ url_for('about') }}">About</a>
+          </li>
+          <li class="nav-item active">
+            <a class="nav-link" href="{{ url_for('home') }}">Contact</a>
+          </li>
+          <li class="nav-item active dropdown">
+            {% if current_user.is_authenticated %}
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{current_user.username}}</a>
+              <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item" href="{{url_for('account', user_id=current_user.id)}}">Account</a>
+                <a class="dropdown-item" href="{{url_for('logout')}}">Logout</a>
+              </div>
+            {% else %}
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Register/Login</a>
+              <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item" href="{{url_for('login')}}">Login</a>
+                <a class="dropdown-item" href="{{url_for('register')}}">Sign-up</a>
+              </div>
+            {% endif %}  
+          </li>
+        </ul>
+      </div>
+      <div class="col-lg-2">
+
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page Content -->
+  <div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-2">
+
+        </div>
+      
+      
+        <div class="col-lg-2 pb-3">
+            <div class="card my-3">
+              <h5 class="card-header">Menu</h5>
+              
+                <table class="table table-hover m-0">
+                  {% if current_user.is_authenticated %}
+                    <tr><td><a class="btn-outline" href="{{url_for('new_post')}}">New Post</a></td></tr>
+                  {% endif %}
+                  
+                  <tr><td><a href="{{url_for('blog')}}">Blog Posts</a></td></tr>
+                  <tr><td><a href="#">Projects</a></td></tr>
+                </table>
+              
+            </div>
+        </div>
+      
+      
+        <div class="col-lg-5"> 
+            {% with messages= get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class='alert alert-{{ category }}'>
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
+            {% block content %}{% endblock content %}
+        </div>
+
+        <div class="col-lg-3">
+        </div>
+
+    <!-- /.row -->
+
+    </div>
+  <!-- /.container -->
+  </div>
+
+  <!-- Footer -->
+  <footer class="mt-auto bg-dark" style="height: 2rem;">
+    <div class="container">
+      <p class="m-0 text-center text-white">Copyright &copy; Lawrence Learns2Code 2020</p>
+    </div>
+    <!-- /.container -->
+  </footer>
+
+  <!-- Bootstrap core JavaScript -->
+  <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
+</body>
+
+</html>

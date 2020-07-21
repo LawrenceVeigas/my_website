@@ -85,7 +85,7 @@ def update_account():
         form.username.data = current_user.username
         form.email.data = current_user.email
     
-    return render_template('account.html', image_file=image_file, form=form)
+    return render_template('account.html', image_file=image_file, form=form, user=current_user)
 
 @app.route('/account/<user_id>/', methods=['GET','POST'])
 @login_required
@@ -93,6 +93,7 @@ def account(user_id):
     form = UpdateAccountForm()
     
     user = User.query.get_or_404(user_id)
+    posts = Post.query.filter_by(user_id=user.id).all()
     
     image_file = url_for('static',filename='images/profile-pictures/' + user.image_file)
     form.username.render_kw = {'readonly':'true'}
@@ -104,7 +105,7 @@ def account(user_id):
         form.username.data = user.username
         form.email.data = user.email
 
-    return render_template('account.html', image_file=image_file, form=form)
+    return render_template('account.html', image_file=image_file, form=form, user=user, posts=posts)
 
 @app.route('/blog/', methods=['GET'])
 def blog():

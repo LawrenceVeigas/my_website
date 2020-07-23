@@ -23,9 +23,35 @@
                     <small class="text-muted">
                         {{post.subtitle}}
                     </small>
+                    {% if post.author.id == current_user.id %}
+                        <a class="btn float-right" data-toggle="modal" data-target="#confirm_delete">
+                            <i class="fa fa-trash" style="font-size: 20px; color: red;"></i>
+                        </a>
+                {% endif %}
                 </h4>
                 <p class="mb-0">Posted on: {{post.date_posted.strftime('%d-%b-%Y')}}</p>
                 <hr>
+            </div>
+        </div>
+        <!-- Modal -->
+        <div class="modal fade" id="confirm_delete" tabindex="-1" role="dialog" aria-labelledby="confirm-delete" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="confirm-delete">Are you sure you want to delete?</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        This post will be permanently deleted.
+                        Maybe you'd like to edit it instead?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <a type="button" class="btn btn-danger" href="{{url_for('delete_post', post_id = post.id)}}">Confirm delete</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

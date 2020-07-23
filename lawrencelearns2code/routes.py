@@ -60,6 +60,10 @@ def register():
 
 @app.route('/login/', methods=['GET','POST'])
 def login():
+    
+    if current_user.is_authenticated:
+        return redirect(url_for('account', user_id=current_user.id))
+    
     form = LoginForm()
 
     if form.validate_on_submit():
@@ -81,7 +85,7 @@ def logout():
 @login_required
 def update_account():
     form = UpdateAccountForm()
-    
+
     image_file = create_image_link(current_user.image_file)
     
     if form.validate_on_submit():
@@ -106,7 +110,7 @@ def account(user_id):
     form = UpdateAccountForm()
     
     user = User.query.get_or_404(user_id)
-    posts = Post.query.filter_by(user_id=user.id).all()
+    posts = Post.query.filter_by(user_id=user.id).order_by(desc('date_posted')).all()
     
     image_file = create_image_link(user.image_file)
     form.username.render_kw = {'readonly':'true'}
@@ -129,8 +133,12 @@ def blog():
 @app.route('/edit_post/<post_id>/', methods=['GET','POST'])
 @login_required 
 def edit_post(post_id):
-    form = NewPostForm()
     post = Post.query.get_or_404(post_id)
+
+    if current_user.id != post.author.id:
+        return "You cannot edit this post"
+
+    form = NewPostForm()
 
     if form.validate_on_submit():
         post.title = form.title.data
@@ -146,7 +154,7 @@ def edit_post(post_id):
         form.title.data = post.title
         form.subtitle.data = post.subtitle
         
-        return render_template('new_post.html', form=form, content=post.content)
+        return render_template('new_post.html', form=form, post=post)
 
 @app.route('/new_post/', methods=['GET','POST'])
 @login_required
@@ -179,3 +187,18 @@ def read_post():
     image_file = create_image_link(user.image_file)
 
     return render_template('read_post.html', post=post, user=user, image_file=image_file)
+
+@app.route('/delete_post/<post_id>/')
+@login_required 
+def delete_post(post_id):
+    post = Post.query.get_or_404(post_id)
+
+    if current_user.id != post.author.id:
+        return "You are not authorized to do this"
+
+    db.session.delete(post)
+    db.session.commit()
+
+    flash('Your post has been deleted', 'success')
+
+    return redirect(url_for('blog'))

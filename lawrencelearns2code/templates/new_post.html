@@ -1,6 +1,8 @@
 {% extends 'layout.html' %}
 {% block title %}
-    Create New Post
+    {% if 'edit_post' in request.endpoint %}
+        Edit Post - {{ post.title }}
+    {% endif %}
 {% endblock title %}
 {% block richtexteditor %}
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
@@ -55,22 +57,55 @@
                     {% else %}
                     {{ form.content(class="form-control-lg form-control", id="hidden_form_content") }}
                     
-                    <div id="editor" onkeyup="updateOther(this)" style="height: 500px;">
-                        
-                            {{content|safe}}
-                        
+                    <div id="editor" onkeyup="updateOther(this)" style="height: 375px;">
+                        {% if post is defined %}
+                            {{post.content|safe}}
+                        {% endif %}
                     </div>
 
                     {% endif %}                
                 </div>
             </fieldset>
             <div class="form-group">
-                {{ form.submit(class="btn btn-primary", onclick="myFunc()") }}
-                <a class="btn btn-primary" href="{{url_for('blog')}}">
-                    <i class="fa fa-close"></i> Cancel
-                </a>
+                <!--{{ form.submit(class="btn btn-primary", onclick="myFunc()") }}-->
+                <button class="btn btn-primary", onclick="myFunc()">
+                    <i class="fa fa-save"></i>
+                    Save
+                </button>
+                {% if 'edit_post' in request.endpoint %}
+                    <a class="btn btn-danger" href="#" data-toggle="modal" data-target="#confirm_delete">
+                        <i class="fa fa-trash" style="color: red;"></i> Delete Post
+                    </a>
+                {% else %}
+                    <a class="btn btn-primary" href="{{url_for('blog')}}">
+                        <i class="fa fa-close"></i> Cancel
+                    </a>
+                {% endif %}
             </div>
         </form>
+        <!-- Modal -->
+        <div class="modal fade" id="confirm_delete" tabindex="-1" role="dialog" aria-labelledby="confirm-delete" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="confirm-delete">Are you sure you want to delete?</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        This post will be permanently deleted.
+                        Maybe you'd like to edit it instead?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        {% if post is defined %}
+                            <a type="button" class="btn btn-danger" href="{{url_for('delete_post', post_id = post.id)}}">Confirm delete</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 {% endblock content %}
 {% block scripts %}

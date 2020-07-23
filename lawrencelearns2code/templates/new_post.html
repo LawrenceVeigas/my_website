@@ -2,8 +2,13 @@
 {% block title %}
     Create New Post
 {% endblock title %}
+{% block richtexteditor %}
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+{% endblock richtexteditor %}
 {% block content %}
     <div class="my-3">
+        <h2 class="my-4">Share life experiences and more!</h2>
         <form method="Post" action="">
             {{ form.hidden_tag() }}
             <fieldset class="form-group">
@@ -48,19 +53,60 @@
                             {% endfor %}
                         </div>
                     {% else %}
-                    {{ form.content(class="form-control", rows="6") }}
-                    {% endif %}
+                    {{ form.content(class="form-control-lg form-control", id="hidden_form_content") }}
+                    
+                    <div id="editor" onkeyup="updateOther(this)" style="height: 500px;">
+                        
+                            {{content|safe}}
+                        
+                    </div>
+
+                    {% endif %}                
                 </div>
-
-
             </fieldset>
             <div class="form-group">
-                {{ form.submit(class="btn btn-primary") }}
+                {{ form.submit(class="btn btn-primary", onclick="myFunc()") }}
                 <a class="btn btn-primary" href="{{url_for('blog')}}">
                     <i class="fa fa-close"></i> Cancel
                 </a>
             </div>
-
         </form>
     </div>
 {% endblock content %}
+{% block scripts %}
+    <!-- Initialize Quill -->
+    <script>
+        var toolbarOptions = [
+            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+            
+            ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+            ['blockquote', 'code-block'],
+
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
+            [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+
+            [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+            [{ 'font': [] }],
+            [{ 'align': [] }],
+
+            ['clean']                                         // remove formatting button
+            ];
+        
+        var options = {
+            modules: {
+                toolbar: toolbarOptions
+            },
+            placeholder: 'Type away!...',
+            theme: 'snow'
+        };
+
+        var quill = new Quill('#editor', options);
+
+        function myFunc(){
+            var x = quill.root.innerHTML;
+            document.getElementById('hidden_form_content').value = x
+        }
+
+    </script>
+{% endblock scripts %}

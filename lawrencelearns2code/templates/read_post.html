@@ -1,0 +1,35 @@
+{% extends 'layout.html' %}
+{% block title %}
+    {{post.author.username}} - {{post.title}}
+{% endblock title %}
+{% block content %}
+    <div class="media my-2">
+        <a href="{{url_for('account', user_id=post.user_id)}}">
+            <img class="rounded-circle account-img" src="{{ url_for('static', filename='images/profile-pictures/' + post.author.image_file) }}">
+        </a>
+        <div class="media-body">
+            <div class="m-0">
+                <a href="{{url_for('account', user_id=post.user_id)}}" class="float-left">{{post.author.username}}</a>
+                {% if post.author.id == current_user.id %}
+                    <a class="btn float-right" href="{{url_for('edit_post', post_id = post.id)}}">
+                        <i class="fa fa-pencil" style="font-size: 24px;" title="Edit post"></i>
+                    </a>
+                {% endif %}
+                </br>
+            </div>
+            <div class="m-0">
+                <h4>
+                    {{post.title}}</br>
+                    <small class="text-muted">
+                        {{post.subtitle}}
+                    </small>
+                </h4>
+                <p class="mb-0">Posted on: {{post.date_posted.strftime('%d-%b-%Y')}}</p>
+                <hr>
+            </div>
+        </div>
+    </div>
+    <div>
+        {{post.content|safe}}
+    </div>
+{% endblock content %}

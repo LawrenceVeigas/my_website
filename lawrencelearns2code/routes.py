@@ -8,6 +8,31 @@ from lawrencelearns2code.forms import RegistrationForm, LoginForm, UpdateAccount
 from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy import desc
 
+# functions
+def create_image_link(fn, blog=0):
+    
+    if blog==1:
+        return url_for('static',filename='images/blog-pictures/' + fn)
+    elif blog==0:
+        return url_for('static',filename='images/profile-pictures/' + fn)
+
+def save_picture(form_picture, blog=0):
+    random_hex = secrets.token_hex(8)
+    _, f_ext = os.path.splitext(form_picture.filename)
+    picture_fn = random_hex + f_ext
+    
+    if blog==0:
+        picture_path = os.path.join(app.root_path, 'static/images/profile-pictures', picture_fn)
+    elif blog==1:
+        picture_path = os.path.join(app.root_path, 'static/images/blog-pictures', picture_fn)
+        
+    output_size = (125,125)
+    i = Image.open(form_picture)
+    i.thumbnail(output_size)
+    i.save(picture_path)
+
+    return picture_fn
+
 @app.route('/')
 @app.route('/home/')
 def home():
@@ -52,24 +77,12 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
-def save_picture(form_picture):
-    random_hex = secrets.token_hex(8)
-    _, f_ext = os.path.splitext(form_picture.filename)
-    picture_fn = random_hex + f_ext
-    picture_path = os.path.join(app.root_path, 'static/images/profile-pictures', picture_fn)
-    output_size = (125,125)
-    i = Image.open(form_picture)
-    i.thumbnail(output_size)
-    i.save(picture_path)
-
-    return picture_fn
-
 @app.route('/update_account/', methods=['GET','POST'])
 @login_required
 def update_account():
     form = UpdateAccountForm()
     
-    image_file = url_for('static',filename='images/profile-pictures/' + current_user.image_file)
+    image_file = create_image_link(current_user.image_file)
     
     if form.validate_on_submit():
         if form.picture.data:
@@ -95,7 +108,7 @@ def account(user_id):
     user = User.query.get_or_404(user_id)
     posts = Post.query.filter_by(user_id=user.id).all()
     
-    image_file = url_for('static',filename='images/profile-pictures/' + user.image_file)
+    image_file = create_image_link(user.image_file)
     form.username.render_kw = {'readonly':'true'}
     form.email.render_kw = {'readonly':'true'}
     form.picture.render_kw = {'hidden':'true'}
@@ -113,25 +126,6 @@ def blog():
 
     return render_template('blog.html', posts=posts)
 
-@app.route('/new_post/', methods=['GET','POST'])
-@login_required
-def new_post():
-    form = NewPostForm()
-    form.title.render_kw = {'placeholder': 'What do you wanna talk about?'}
-    form.subtitle.render_kw = {'placeholder': 'Describe your post in a few words'}
-    form.content.render_kw = {'placeholder': 'Type away!....'}
-
-    if form.validate_on_submit():
-        post = Post(title=form.title.data, subtitle=form.subtitle.data, content=form.content.data, user_id=current_user.id)
-        
-        db.session.add(post)
-        db.session.commit()
-        flash('Done!', 'success')
-
-        return redirect(url_for('blog'))
-
-    return render_template('new_post.html', form=form)
-
 @app.route('/edit_post/<post_id>/', methods=['GET','POST'])
 @login_required 
 def edit_post(post_id):
@@ -147,9 +141,41 @@ def edit_post(post_id):
         flash('Post updated!','success')
 
         return redirect(url_for('blog'))
+
     elif request.method == 'GET':
         form.title.data = post.title
         form.subtitle.data = post.subtitle
-        form.content.data = post.content
+        
+        return render_template('new_post.html', form=form, content=post.content)
+
+@app.route('/new_post/', methods=['GET','POST'])
+@login_required
+def new_post():
+    form = NewPostForm()
+
+    form.title.render_kw = {'placeholder': 'What do you wanna talk about?'}
+    form.subtitle.render_kw = {'placeholder': 'Describe your post in a few words'}
+
+    if form.validate_on_submit():
+        post = Post(title=form.title.data, subtitle=form.subtitle.data, content=form.content.data, user_id=current_user.id)
+        
+        db.session.add(post)
+        db.session.commit()
+        flash('Done!', 'success')
+
+        return redirect(url_for('blog'))
     
     return render_template('new_post.html', form=form)
+
+@app.route('/read_post/', methods=['GET'])
+def read_post():
+
+    pid = request.args.get('_pid', None)
+    uid = request.args.get('_uid', None)
+
+    post = Post.query.get_or_404(pid)
+    user = User.query.get_or_404(uid)
+
+    image_file = create_image_link(user.image_file)
+
+    return render_template('read_post.html', post=post, user=user, image_file=image_file)

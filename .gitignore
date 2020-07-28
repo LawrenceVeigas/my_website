@@ -2,3 +2,4 @@ venv/
 logs.txt
 my_website.code-workspace
 __pycache__
+db-backups/

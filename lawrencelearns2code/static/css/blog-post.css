@@ -8,8 +8,8 @@ body {
 }
 
 .account-img {
-  height: 125px;
-  width: 125px;
+  height: auto;
+  width: auto;
   margin-right: 20px;
   margin-bottom: 16px;
 }

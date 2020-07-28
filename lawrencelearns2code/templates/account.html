@@ -2,10 +2,34 @@
 {% block title %}
     {{ current_user.username }}
 {% endblock title %}
+{% block stylesheet %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/cropperjs/cropper.css') }}">
+{% endblock stylesheet %}
 {% block content %}
+  <div class="alert" style="display: none;">
+
+  </div>
     <div class="content-section my-2">
       <div class="media">
-        <img class="rounded-circle account-img" src="{{ image_file }}">
+        <label data-toggle='tooltip' id="editPic">
+            <figure class="figure">
+                <img class="rounded-circle account-img" src="{{ image_file }}" id="avatar">
+                {% if user.id==current_user.id %}
+                <figcaption class="mt-0" style="text-align: center;">
+                  <small style="cursor: pointer;">Edit Profile Picture</small>
+                  {{ form.picture(id="input", style="font-size: 10px;", accept="image/*") }}
+                  <div class="progress" style="display: none;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="display: none;">0%</div>
+                  </div>
+                  {% if form.picture.errors %}
+                      {% for error in form.picture.errors %}
+                          <span class="text-danger">{{ error }}</span></br>
+                      {% endfor %}
+                  {% endif %}
+                </figcaption>
+                {% endif %}
+            </figure>
+        </label>
         <div class="media-body">
           <h2 class="account-heading">{{ user.username }}</h2>
           <p class="text-secondary">{{ user.email }}</p>
@@ -18,9 +42,12 @@
                     <h2 class="d-inline-block">
                         Account-info
                     </h2>
-                    <!-- Fix this -->
                     {% if user.id == current_user.id %}
-                        <a class="btn btn-primary float-right" href="{{url_for('update_account')}}">Edit</a>
+                        {% if 'update_account' in request.endpoint %}
+
+                        {% else %}
+                            <a class="btn btn-primary float-right" href="{{url_for('update_account')}}">Edit</a>
+                        {% endif %}
                     {% endif %}    
                 </div>
                 
@@ -51,22 +78,11 @@
                         {{ form.email(class="form-control form-control-lg") }}
                     {% endif %}
                 </div>
-                <div class="form-group">
-                    {% if 'update_account' in request.endpoint %}
-                        {{ form.picture.label() }}
-                    {% endif %}
-                    {{ form.picture(class="form-control-file") }}
-                    {% if form.picture.errors %}
-                        {% for error in form.picture.errors %}
-                            <span class="text-danger">{{ error }}</span></br>
-                        {% endfor %}
-                    {% endif %}
-                </div>
             </fieldset>
             <div class="form-group">
-                {{ form.submit(class="btn btn-outline-info") }}
+                {{ form.submit(class="btn btn-primary") }}
                 {% if 'update' in request.endpoint %}
-                    <a class='btn btn-outline-info' href="{{ url_for('account', user_id=user.id) }}">
+                    <a class='btn btn-secondary' href="{{ url_for('account', user_id=user.id) }}">
                         Cancel
                     </a>
                 {% endif %}
@@ -78,8 +94,8 @@
         {% endif %}
         {% for post in posts %}
             <div class="media">
-                <a href="{{url_for('account', user_id=post.user_id)}}">
-                    <img class="img-thumbnail account-img" src="{{ url_for('static', filename='images/profile-pictures/' + post.author.image_file) }}">
+                <a href="{{url_for('read_post', pid=post.id, uid=post.user_id)}}">
+                    <img id="avatar" class="img-thumbnail account-img" src="{{ image_file }}">
                 </a>
                 <div class="media-body">
                     <div class="m-0">
@@ -93,7 +109,7 @@
                     </div>
                     <div class="m-0">
                         <p class="mb-0">Posted on: {{post.date_posted.strftime('%d-%b-%Y')}}</p>
-                        <a href="{{url_for('read_post', _pid=post.id, _uid=post.user_id)}}" style="color: inherit;">
+                        <a href="{{url_for('read_post', pid=post.id, uid=post.user_id, title=post.title)}}" style="color: inherit;">
                             <h4>
                                 {{post.title}}</br>
                                 <small class="text-muted">
@@ -106,6 +122,158 @@
                 </div>
             </div>
         {% endfor %}
-
+        <div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="modalLabel">Cropper</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <div class="img-container">
+                    <img id="image" src="{{ image_file }}" style="height: auto; width: 100%;" alt="Picture">
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-primary" id="crop">Crop</button>
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
     </div>
 {% endblock content %}
+{% block script %}
+<!--script src="https://code.jquery.com/jquery-3.4.1.min.js" crossorigin="anonymous"></script-->
+<script src="{{ url_for('static', filename='vendor/cropperjs/cropper.js') }}"></script>
+<script>
+  var x = {{current_user.id}}
+  var y = {{user.id}}
+
+  if (x == y){
+    $("#editPic").css("cursor","pointer");
+    $("#editPic").attr("title","Edit picture");
+  }
+
+  window.addEventListener('DOMContentLoaded', function () {
+    var avatar = document.getElementById('avatar');
+    var image = document.getElementById('image');
+    var input = document.getElementById('input');
+    var $progress = $('.progress');
+    var $progressBar = $('.progress-bar');
+    var $alert = $('.alert')
+    var fileName;
+
+
+    var $modal = $('#modal');
+    var cropper;
+
+    $('[data-toggle="tooltip"]').tooltip();
+
+    input.addEventListener('change', function (e) {
+      var files = e.target.files;
+      fileName = e.target.files[0].name;
+      var done = function (url) {
+        input.value = '';
+        image.src = url;
+        
+        $modal.modal('show');
+      };
+      var reader;
+      var file;
+      var url;
+
+      if (files && files.length > 0) {
+        file = files[0];
+
+        if (URL) {
+          done(URL.createObjectURL(file));
+        } else if (FileReader) {
+          reader = new FileReader();
+          reader.onload = function (e) {
+            done(reader.result);
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    });
+
+    $modal.on('shown.bs.modal', function () {
+      cropper = new Cropper(image, {
+        aspectRatio: 1,
+        viewMode: 3,
+      });
+    }).on('hidden.bs.modal', function () {
+      cropper.destroy();
+      cropper = null;
+    });
+
+    document.getElementById('crop').addEventListener('click', function () {
+      var initialAvatarURL;
+      var canvas;
+
+      $modal.modal('hide');
+
+      if (cropper) {
+        var cropped_width = cropper.getData().width
+        var cropped_height = cropper.getData().height
+        canvas = cropper.getCroppedCanvas({
+          width: cropped_width,
+          height: cropped_height,
+        });
+        initialAvatarURL = avatar.src;
+        avatar.src = canvas.toDataURL();
+        exp = canvas.toDataURL();
+        $progress.show()
+        $alert.removeClass('alert-sucess alert-warning')
+        
+        
+        canvas.toBlob(function (blob) {
+          var formData = new FormData();
+
+          formData.append('avatar', blob, fileName);
+          $.ajax('/update-profile-pic', {
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+
+            xhr: function () {
+              var xhr = new XMLHttpRequest();
+
+              xhr.upload.onprogress = function (e) {
+                var percent = '0';
+                var percentage = '0%';
+
+                if (e.lengthComputable) {
+                  percent = Math.round((e.loaded / e.total) * 100);
+                  percentage = percent + '%';
+                  $progressBar.width(percentage).attr('aria-valuenow', percent).text(percentage);
+                }
+              };
+
+              return xhr;
+            },
+
+            success: function () {
+              $alert.show().addClass('alert-success').text('Upload success');
+            },
+
+            error: function () {
+              avatar.src = initialAvatarURL;
+              $alert.show().addClass('alert-warning').text('Upload error');
+              console.log(error)
+            },
+
+            complete: function () {
+              $progress.hide();
+            },
+          });
+        });
+      }
+    });
+  });
+</script>
+{% endblock script %}

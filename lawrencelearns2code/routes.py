@@ -1,7 +1,7 @@
-import secrets
 import os
+import secrets
 from PIL import Image
-from flask import Flask, render_template, url_for, flash, redirect, request
+from flask import Flask, render_template, url_for, flash, redirect, request, make_response
 from lawrencelearns2code import app, db, bcrypt
 from lawrencelearns2code.models import User, Post
 from lawrencelearns2code.forms import RegistrationForm, LoginForm, UpdateAccountForm, NewPostForm
@@ -26,7 +26,7 @@ def save_picture(form_picture, blog=0):
     elif blog==1:
         picture_path = os.path.join(app.root_path, 'static/images/blog-pictures', picture_fn)
         
-    output_size = (125,125)
+    output_size = (150,150)
     i = Image.open(form_picture)
     i.thumbnail(output_size)
     i.save(picture_path)
@@ -85,14 +85,10 @@ def logout():
 @login_required
 def update_account():
     form = UpdateAccountForm()
-
+    form.picture.render_kw = {'hidden':'true'}
     image_file = create_image_link(current_user.image_file)
     
     if form.validate_on_submit():
-        if form.picture.data:
-            picture_file = save_picture(form.picture.data)
-            current_user.image_file = picture_file
-        
         current_user.username = form.username.data
         current_user.email = form.email.data
 
@@ -165,7 +161,10 @@ def new_post():
     form.subtitle.render_kw = {'placeholder': 'Describe your post in a few words'}
 
     if form.validate_on_submit():
-        post = Post(title=form.title.data, subtitle=form.subtitle.data, content=form.content.data, user_id=current_user.id)
+        post = Post(title=form.title.data, 
+                    subtitle=form.subtitle.data, 
+                    content=form.content.data, 
+                    user_id=current_user.id)
         
         db.session.add(post)
         db.session.commit()
@@ -178,8 +177,9 @@ def new_post():
 @app.route('/read_post/', methods=['GET'])
 def read_post():
 
-    pid = request.args.get('_pid', None)
-    uid = request.args.get('_uid', None)
+    pid = request.args.get('pid', None)
+    uid = request.args.get('uid', None)
+    title = request.args.get('title')
 
     post = Post.query.get_or_404(pid)
     user = User.query.get_or_404(uid)
@@ -202,3 +202,27 @@ def delete_post(post_id):
     flash('Your post has been deleted', 'success')
 
     return redirect(url_for('blog'))
+
+@app.route('/update-profile-pic', methods=['POST'])
+def update_profile_pic():
+
+    if request.method == 'POST':
+        file = request.files['avatar']
+        filename = file.filename
+    
+        random_hex = secrets.token_hex(8)
+        _, f_ext = os.path.splitext(filename)
+        picture_fn = random_hex + f_ext
+        picture_path = os.path.join(app.root_path, 'static/images/profile-pictures', picture_fn)
+            
+        output_size = (500,500)
+        i = Image.open(file)
+        i.thumbnail(output_size)
+        i = i.convert("RGB")
+        i.save(picture_path)
+
+        current_user.image_file = picture_fn
+
+        db.session.commit()
+        
+        return make_response('Sucess', 200)

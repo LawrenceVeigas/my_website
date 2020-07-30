@@ -5,8 +5,10 @@
     {% endif %}
 {% endblock title %}
 {% block stylesheet %}
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <link href="{{ url_for('static', filename='vendor/quilljs/quill.snow.css') }}" rel="stylesheet">
+    <script src="{{ url_for('static', filename='vendor/quilljs/quill.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/quilljs/image-resize.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/quilljs/image-drop.min.js') }}"></script>
 {% endblock stylesheet %}
 {% block content %}
     <div class="my-3">
@@ -57,7 +59,7 @@
                     {% else %}
                     {{ form.content(class="form-control-lg form-control", id="hidden_form_content") }}
                     
-                    <div id="editor" onkeyup="updateOther(this)" style="height: 375px;">
+                    <div id="editor" style="height: 375px;">
                         {% if post is defined %}
                             {{post.content|safe}}
                         {% endif %}
@@ -110,29 +112,36 @@
 {% block script %}
     <!-- Initialize Quill -->
     <script>
+        
         var toolbarOptions = [
             [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+
+            //[{ 'font': [] }],
+            [{ 'align': ''}, { 'align': 'center' }, { 'align': 'right' } ],
             
             ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
             ['blockquote', 'code-block'],
 
             [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-            [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
+            //[{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
             [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
 
+            ['link', 'image'],
             [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
-            [{ 'font': [] }],
-            [{ 'align': [] }],
 
             ['clean']                                         // remove formatting button
             ];
         
         var options = {
-            modules: {
-                toolbar: toolbarOptions
-            },
             placeholder: 'Type away!...',
-            theme: 'snow'
+            theme: 'snow',
+            modules: {
+                imageResize: {
+                    displaySize: true
+                },
+                imageDrop: true,
+                toolbar: toolbarOptions
+            }
         };
 
         var quill = new Quill('#editor', options);

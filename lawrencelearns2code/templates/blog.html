@@ -21,7 +21,7 @@
                     </div>
                     <div class="m-0">
                         <p class="mb-0">Posted on: {{post.date_posted.strftime('%d-%b-%Y')}}</p>
-                        <a href="{{url_for('read_post', pid=post.id, uid=post.user_id)}}" style="color: inherit;">
+                        <a href="{{url_for('read_post', pid=post.id, uid=post.user_id, title=post.title)}}" style="color: inherit;">
                             <h4>
                                 {{post.title}}</br>
                                 <small class="text-muted">

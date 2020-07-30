@@ -48,14 +48,14 @@
                         Maybe you'd like to edit it instead?
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <a type="button" class="btn btn-primary" href="{{url_for('edit_post', post_id = post.id)}}">Edit</button>
                         <a type="button" class="btn btn-danger" href="{{url_for('delete_post', post_id = post.id)}}">Confirm delete</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <div>
+    <div id="post">
         {{post.content|safe}}
     </div>
 {% endblock content %}

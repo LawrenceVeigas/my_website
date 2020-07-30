@@ -149,8 +149,8 @@
 <!--script src="https://code.jquery.com/jquery-3.4.1.min.js" crossorigin="anonymous"></script-->
 <script src="{{ url_for('static', filename='vendor/cropperjs/cropper.js') }}"></script>
 <script>
-  var x = {{current_user.id}}
-  var y = {{user.id}}
+  var x = {{current_user.id}};
+  var y = {{user.id}};
 
   if (x == y){
     $("#editPic").css("cursor","pointer");

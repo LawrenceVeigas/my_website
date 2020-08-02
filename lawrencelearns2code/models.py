@@ -1,6 +1,7 @@
 from lawrencelearns2code import db, login_manager
 from datetime import datetime
 from flask_login import UserMixin
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 @login_manager.user_loader
 def load_user(user_id):

@@ -1,5 +1,6 @@
 venv/
 logs.txt
 my_website.code-workspace
-__pycache__
+lawrencelearns2code/__pycache__/
 db-backups/
+lawrencelearns2code/misc.json

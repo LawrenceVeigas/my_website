@@ -2,10 +2,11 @@ import os
 import secrets
 from PIL import Image
 from flask import Flask, render_template, url_for, flash, redirect, request, make_response
-from lawrencelearns2code import app, db, bcrypt
+from lawrencelearns2code import app, db, bcrypt, mail
 from lawrencelearns2code.models import User, Post
 from lawrencelearns2code.forms import RegistrationForm, LoginForm, UpdateAccountForm, NewPostForm
 from flask_login import login_user, logout_user, login_required, current_user
+from flask_mail import Message
 from sqlalchemy import desc
 
 # functions
@@ -49,6 +50,13 @@ def register():
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
         user = User(username=form.username.data, email=form.email.data, password=hashed_password)
+
+        with app.app_context():
+            msg = Message("Hi, you've registered as a user on LawrenceLearns2Code.com!")
+            msg.recipients = [form.email.data]
+            msg.body(f"Dear {form.username.data},\nI are extremely happy to have you onboard with us. Hope you enjoy this website.\nDo use the platform to create and share posts with fellow users. :) Regards,\nLawrence")
+            mail.send(msg)
+
 
         db.session.add(user)
         db.session.commit()
@@ -101,7 +109,6 @@ def update_account():
     return render_template('account.html', image_file=image_file, form=form, user=current_user)
 
 @app.route('/account/<user_id>/', methods=['GET','POST'])
-@login_required
 def account(user_id):
     form = UpdateAccountForm()
     

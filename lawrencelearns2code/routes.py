@@ -38,7 +38,7 @@ def save_picture(form_picture, blog=0):
 def send_activation_link(user):
     s = Serializer(app.config['SECRET_KEY'], 1800)
     token = s.dumps({'user_id': user.id}).decode('utf-8')
-    link = 'http://localhost:5000' + url_for('activate_account', token=token)
+    link = request.host_url + url_for('activate_account', token=token)
     return link
 
 def verify_activation_link(token):

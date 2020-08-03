@@ -1,6 +1,10 @@
 venv/
 logs.txt
 my_website.code-workspace
-lawrencelearns2code/__pycache__/
+__pycache__/
 db-backups/
+mydump.csv
 lawrencelearns2code/misc.json
+lawrencelearns2code/migrate.py
+lawrencelearns2code/Post.csv
+lawrencelearns2code/User.csv

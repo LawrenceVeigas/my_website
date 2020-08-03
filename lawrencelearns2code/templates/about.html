@@ -2,6 +2,30 @@
 {% block title %}
     About
 {% endblock title %}
-{% block content %}
-    <p>This is my about page</p>
+{% block content %}   
+    <div class="my-3 d-flex justify-content-center">
+        <h1>
+            About me
+        </h1>
+    </div>
+    <div class="my-3">
+        <img src="{{ url_for('static', filename='images/home.jpeg') }}" class="img-fluid img-thumbnail mx-auto d-block" style="height:auto">
+        <br/>
+        <p class='lead'>
+            Hi, I'm Lawrence (whose learning to code) and 
+            after tiring away at my job profile as a backend support guy, 
+            I want to start learning and exploring things that I actually love. 
+            Creating a website being among those things. 
+            <br><br>
+            Another objective of creating this website is to showcase my life both on a personal as well as a professional front. 
+            I will be uploading blogposts about life experiences and what not (I have reason to believe that I don't write bad at all! So this part of the webstie should be fun.)
+            The next aspect would be the professional front; I'll be uploading different projects, mostly of a data sciency nature. 
+            <br><br>
+            You can check this out right now on the right menu.
+            <br><br>
+            The very first project that I'm working 
+            on is twitter sentiment analysis specially checking out what people think of the pandemic in relation to the government. 
+            Each project within the projects page will have an article explaining what I sought out to do, followed by a live demo of the project itself.
+        </p>
+    </div>
 {% endblock content %}

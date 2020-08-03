@@ -6,14 +6,17 @@ from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from flask_mail import Mail
 
-creds = {}
+email = {}
+app_secret = ''
 with open(os.getcwd() + '//lawrencelearns2code//misc.json', 'r') as f:
     file = f.read()
     creds = json.loads(file)
-    creds = creds.get('email')
+    email = creds.get('email')
+    app_secret = creds.get('app_secret')
+
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'e94c3ddbf6c23558fe5b76032d0d7b78'
+app.config['SECRET_KEY'] = app_secret
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 
 mail_settings = {
@@ -21,9 +24,9 @@ mail_settings = {
     "MAIL_PORT": 587,
     "MAIL_USE_TLS": True,
     "MAIL_USE_SSL": False,
-    "MAIL_USERNAME": creds.get('username'),
-    "MAIL_PASSWORD": creds.get('pass'),
-    "MAIL_DEFAULT_SENDER": creds.get('username')
+    "MAIL_USERNAME": email.get('username'),
+    "MAIL_PASSWORD": email.get('pass'),
+    "MAIL_DEFAULT_SENDER": email.get('username')
 }
 
 app.config.update(mail_settings)

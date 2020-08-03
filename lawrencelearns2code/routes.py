@@ -8,6 +8,7 @@ from lawrencelearns2code.forms import RegistrationForm, LoginForm, UpdateAccount
 from flask_login import login_user, logout_user, login_required, current_user
 from flask_mail import Message
 from sqlalchemy import desc
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 # functions
 def create_image_link(fn, blog=0):
@@ -34,10 +35,29 @@ def save_picture(form_picture, blog=0):
 
     return picture_fn
 
+def send_activation_link(user):
+    s = Serializer(app.config['SECRET_KEY'], 1800)
+    token = s.dumps({'user_id': user.id}).decode('utf-8')
+    link = 'http://localhost:5000' + url_for('activate_account', token=token)
+    return link
+
+def verify_activation_link(token):
+    s = Serializer(app.config['SECRET_KEY'])
+    try:
+        user_id = s.loads(token)['user_id']
+    except Exception as e:
+        print(str(e))
+        return None
+    return user_id
+
 @app.route('/')
 @app.route('/home/')
 def home():
     return render_template('home.html')
+
+@app.route('/contact/')
+def contact():
+    return render_template('contact.html')
 
 @app.route('/about/')
 def about():
@@ -50,21 +70,41 @@ def register():
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
         user = User(username=form.username.data, email=form.email.data, password=hashed_password)
+        
+        db.session.add(user)
+        db.session.commit()
+        
+        user = User.query.filter_by(email=form.email.data).first()
+        link = send_activation_link(user)
 
         with app.app_context():
             msg = Message("Hi, you've registered as a user on LawrenceLearns2Code.com!")
             msg.recipients = [form.email.data]
-            msg.body(f"Dear {form.username.data},\nI are extremely happy to have you onboard with us. Hope you enjoy this website.\nDo use the platform to create and share posts with fellow users. :) Regards,\nLawrence")
+            msg.body = f"Dear {form.username.data},\nI are extremely happy to have you onboard with us. Hope you enjoy this website.\nDo use the platform to create and share posts with fellow users. :)\nHere is your activation link:\n{link}\nDo note: The link is valid only for 30 minutes\n\nRegards,\nLawrence"
+            
             mail.send(msg)
 
+        flash('Please check your email and click on the link to activate account.', 'success')
+        return redirect(url_for('login'))
+        
+    return render_template('register.html', form=form)
+
+@app.route('/activate_account/<token>')
+def activate_account(token):
+    user_id = verify_activation_link(token)
+
+    if user_id is not None:
+        user = User.query.get(user_id)
+        user.activated = True
 
         db.session.add(user)
         db.session.commit()
 
-        flash('Your account has been created, please login.', 'success')
+        flash('Account activated! Please go ahead and login.', 'success')
         return redirect(url_for('login'))
-        
-    return render_template('register.html', form=form)
+    else:
+        flash('The link has expired or is invalid', 'info')
+        return redirect(url_for('login'))
 
 @app.route('/login/', methods=['GET','POST'])
 def login():
@@ -77,9 +117,24 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data):
-            login_user(user, remember=form.remember.data)
-            next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('home'))
+            if user.activated:
+                login_user(user, remember=form.remember.data)
+                next_page = request.args.get('next')
+                return redirect(next_page) if next_page else redirect(url_for('home'))
+            else:
+                flash('Account has not been activated, we\'ve resent the activation link to your email account. Kindly activate your account', 'info')
+                
+                user = User.query.filter_by(email=form.email.data).first()
+                link = send_activation_link(user)
+
+                with app.app_context():
+                    msg = Message("Hi, you've registered as a user on LawrenceLearns2Code.com!")
+                    msg.recipients = [form.email.data]
+                    msg.body = f"Dear {user.username},\nI are extremely happy to have you onboard with us. Hope you enjoy this website.\nDo use the platform to create and share posts with fellow users. :)\nHere is your activation link:\n{link}\nDo note: The link is valid only for 30 minutes\n\nRegards,\nLawrence"
+                    
+                    mail.send(msg)
+                
+                return redirect(url_for('login'))
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
     return render_template('login.html', title='Login', form=form)

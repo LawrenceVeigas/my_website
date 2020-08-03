@@ -8,11 +8,15 @@ from flask_mail import Mail
 
 email = {}
 app_secret = ''
-with open(os.getcwd() + '//lawrencelearns2code//misc.json', 'r') as f:
-    file = f.read()
-    creds = json.loads(file)
-    email = creds.get('email')
-    app_secret = creds.get('app_secret')
+try:
+    with open(os.getcwd() + '//lawrencelearns2code//misc.json', 'r') as f:
+        file = f.read()
+        creds = json.loads(file)
+        email = creds.get('email')
+        app_secret = creds.get('app_secret')
+except:
+    email = {'username': os.environ.get('email_username'), 'pass': os.environ.get('email_password')}
+    app_secret = os.environ.get('app_secret')
 
 
 app = Flask(__name__)

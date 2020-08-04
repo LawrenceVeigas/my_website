@@ -18,7 +18,6 @@
             <fieldset class="form-group">
                 <div class="form-group">
                     {{ form.title.label(class="form-control-label") }}
-                    
                     {% if form.title.errors %}
                         {{ form.title(class="form-control form-control-lg is-invalid") }}
                         <div class="invalid-feedback">
@@ -69,7 +68,6 @@
                 </div>
             </fieldset>
             <div class="form-group">
-                <!--{{ form.submit(class="btn btn-primary", onclick="myFunc()") }}-->
                 <button class="btn btn-primary", onclick="myFunc()">
                     <i class="fa fa-save"></i>
                     Save
@@ -110,6 +108,8 @@
     </div>
 {% endblock content %}
 {% block script %}
+    
+    <script src="{{ url_for('static', filename='vendor/jquery/jquery.blockUI.js') }}"></script>
     <!-- Initialize Quill -->
     <script>
         
@@ -147,8 +147,18 @@
         var quill = new Quill('#editor', options);
 
         function myFunc(){
-            var x = quill.root.innerHTML;
-            document.getElementById('hidden_form_content').value = x
+            $.blockUI({ 
+                css: { 
+                border: 'none', 
+                padding: '15px', 
+                backgroundColor: '#000', 
+                '-webkit-border-radius': '10px', 
+                '-moz-border-radius': '10px', 
+                opacity: .5, 
+                color: '#fff' 
+                }
+            }); 
+            document.getElementById('hidden_form_content').value = quill.root.innerHTML;
         }
 
     </script>

@@ -7,7 +7,6 @@
 {% endblock stylesheet %}
 {% block content %}
   <div class="alert" style="display: none;">
-
   </div>
     <div class="content-section my-2">
       <div class="media">
@@ -19,7 +18,7 @@
                   <small style="cursor: pointer;">Edit Profile Picture</small>
                   {{ form.picture(id="input", style="font-size: 10px;", accept="image/*") }}
                   <div class="progress" style="display: none;">
-                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="display: none;">0%</div>
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
                   </div>
                   {% if form.picture.errors %}
                       {% for error in form.picture.errors %}
@@ -149,10 +148,7 @@
 <!--script src="https://code.jquery.com/jquery-3.4.1.min.js" crossorigin="anonymous"></script-->
 <script src="{{ url_for('static', filename='vendor/cropperjs/cropper.js') }}"></script>
 <script>
-  var x = {{current_user.id}};
-  var y = {{user.id}};
-
-  if (x == y){
+  if ({{current_user.id}} == {{user.id}}){
     $("#editPic").css("cursor","pointer");
     $("#editPic").attr("title","Edit picture");
   }
@@ -165,8 +161,6 @@
     var $progressBar = $('.progress-bar');
     var $alert = $('.alert')
     var fileName;
-
-
     var $modal = $('#modal');
     var cropper;
 
@@ -228,7 +222,6 @@
         exp = canvas.toDataURL();
         $progress.show()
         $alert.removeClass('alert-sucess alert-warning')
-        
         
         canvas.toBlob(function (blob) {
           var formData = new FormData();

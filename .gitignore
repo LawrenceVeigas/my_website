@@ -4,6 +4,8 @@ my_website.code-workspace
 __pycache__/
 db-backups/
 mydump.csv
+lawrencelearns2code/site.db
+lawrencelearns2code/static/images/profile-pictures/
 lawrencelearns2code/misc.json
 lawrencelearns2code/migrate.py
 lawrencelearns2code/Post.csv

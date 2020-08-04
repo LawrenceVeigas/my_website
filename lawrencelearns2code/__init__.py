@@ -8,20 +8,23 @@ from flask_mail import Mail
 
 email = {}
 app_secret = ''
+db_url = ''
 try:
     with open(os.getcwd() + '//lawrencelearns2code//misc.json', 'r') as f:
         file = f.read()
         creds = json.loads(file)
         email = creds.get('email')
         app_secret = creds.get('app_secret')
+        db_url = 'sqlite:///site.db'
 except:
     email = {'username': os.environ.get('email_username'), 'pass': os.environ.get('email_password')}
     app_secret = os.environ.get('app_secret')
+    db_url = os.environ.get('DATABASE_URL')
 
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = app_secret
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 
 mail_settings = {
     "MAIL_SERVER": 'smtp.gmail.com',
